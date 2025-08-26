@@ -14,7 +14,7 @@ args = sys.argv
 if len(args) < 5:
     if not os.path.isfile(USER_SETTING_PATH):
         from src.initialize import initialize
-        args += initialize()
+        args += initialize()[len(args) - 1:]
     else:
         import importlib.util
         from pathlib import Path
@@ -36,7 +36,7 @@ if len(args) < 5:
         if len(args) < 5:
             args.append(user_settings.CHANNEL)
 
-from src.account import Account, ChannelError
+from src.account import Account, ChannelError, LoginError
 
 
 def main(*args) -> None:
@@ -50,14 +50,17 @@ def main(*args) -> None:
         "on": "logout"
     }[account.user_online_state] if (action == "shift") else action
 
-    {
-        "login": account.login,
-        "logout": account.logout,
-    }[action]()
+    try:
+        {
+            "login": account.login,
+            "logout": account.logout,
+        }[action]()
+    except (ChannelError, LoginError) as error:
+        print(error)
 
 
 try:
     main(*args[1:])
 except Exception as error:
-    print(f"运行时出现未知错误：{error.__class__.__name__}: {str(error)}")
-    input("请及时鞭策开发者 24300240141@m.fudan.edu.cn 。谢谢！【按下「回车键」退出】")
+    print(f"Unknown error occurred during runtime: {error.__class__.__name__}: {str(error)}")
+    input("Please provide timely feedback to the developer 24300240141@m.fudan.edu.cn . Thank you! Press the 'Enter' key to exit")

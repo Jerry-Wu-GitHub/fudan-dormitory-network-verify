@@ -8,13 +8,14 @@ except:
     print("./config/constants.py 文件已损坏，请重新下载！")
     input("【按下「回车键」退出】")
 
-from config.user import USERNAME, PASSWORD, CHANNEL
-
 
 
 UserOnlineState = Literal["on", "off"]
 
 class ChannelError(Exception):
+    pass
+
+class LoginError(Exception):
     pass
 
 class Account:
@@ -39,12 +40,12 @@ class Account:
 
     def __init__(
         self,
-        username: str = None, password: str = None, channel: str = None,
+        username: str, password: str, channel: str,
         ip:       str = None
     ):
-        self.username = username or USERNAME
-        self.password = password or PASSWORD
-        self.channel  = channel  or CHANNEL
+        self.username = username
+        self.password = password
+        self.channel  = channel 
         self.ip       = ip       or Account.get_ip()
 
 
@@ -175,7 +176,7 @@ class Account:
             'username': self.username,
             'password': self.password,
             'ifautologin': '0',
-            'channel': Account._process_channels(self._get_channels())[CHANNEL],
+            'channel': Account._process_channels(self._get_channels())[self.channel],
             'pagesign': 'secondauth',
             'usripadd': self.ip,
         }
@@ -191,9 +192,12 @@ class Account:
         response_data = response.json()["data"]
 
         if "text" in response_data:
-            print("登录失败：" + response_data["text"])
+            # print(response_data)
+            for (feature, message) in ERROR_FEATURES.items():
+                if feature in response_data["text"]:
+                    raise LoginError("Login failed: " + message)
         else:
-            print("登录成功！")
+            print("Login successful!")
 
 
     def logout(self) -> None:
