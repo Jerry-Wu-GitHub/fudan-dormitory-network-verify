@@ -1,0 +1,3 @@
+r"""
+Some configuration information.
+"""
